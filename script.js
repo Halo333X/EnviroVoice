@@ -621,8 +621,16 @@ class UIManager {
       volumeValue: document.getElementById("volumeValue"),
       participantsList: document.getElementById("participantsList"),
       setupSection: document.getElementById("setupSection"),
-      gameStatus: document.getElementById("gameStatus")
+      gameStatus: document.getElementById("gameStatus"),
+      minecraftConnectContainer: document.createElement("div") // contenedor para input/button
     };
+
+    // Inicializar contenedor para MC connect
+    this.elements.minecraftConnectContainer.id = "minecraftConnectContainer";
+    this.elements.gameStatus?.parentNode.insertBefore(
+      this.elements.minecraftConnectContainer,
+      this.elements.gameStatus.nextSibling
+    );
   }
 
   updateGamertagStatus(gamertag) {
@@ -659,29 +667,90 @@ class UIManager {
 
   updateGameStatus(isInGame) {
     if (!this.elements.gameStatus) return;
-    
-    this.elements.gameStatus.innerHTML = isInGame
-      ? '<span style="color:#22c55e;">✓ Connected to Minecraft server</span>'
-      : '<span style="color:#ef4444;">⚠️ Not connected to Minecraft server</span>';
+
+    if (isInGame) {
+      this.elements.gameStatus.innerHTML = '<span style="color:#22c55e;">✓ Connected to Minecraft server</span>';
+      this.clearMinecraftConnectUI();
+    } else {
+      this.elements.gameStatus.innerHTML = '<span style="color:#ef4444;">⚠️ Not connected to Minecraft server</span>';
+      this.showMinecraftConnectUI();
+    }
+  }
+
+  showMinecraftConnectUI() {
+    const container = this.elements.minecraftConnectContainer;
+
+    // Crear texto explicativo solo si no existe
+    let infoText = document.getElementById("mcInfoText");
+    if (!infoText) {
+      infoText = document.createElement("p");
+      infoText.id = "mcInfoText";
+      infoText.textContent = "Haven't joined the server yet? Enter the IP and port here and we'll connect you!";
+      infoText.style.marginBottom = "8px"; // separación del input
+      container.appendChild(infoText);
+    }
+
+    // Crear input solo si no existe
+    let input = document.getElementById("mcServerInput");
+    if (!input) {
+      input = document.createElement("input");
+      input.type = "text";
+      input.id = "mcServerInput";
+      input.placeholder = "hive.net:19132";
+      input.className = "input-field"; // misma clase que tus otros inputs
+      input.style.marginRight = "10px";
+      container.appendChild(input);
+    }
+
+    // Función para actualizar botón
+    const updateButton = () => {
+      const existingBtn = document.getElementById("mcConnectBtn");
+      if (input.value.trim() && !existingBtn) {
+        const btn = document.createElement("button");
+        btn.id = "mcConnectBtn";
+        btn.className = "primary-btn";
+        btn.textContent = "Connect to MC Server";
+        btn.addEventListener("click", () => {
+          const [ip, port] = input.value.split(":");
+          if (!ip || !port) {
+            alert("⚠️ Invalid format. Use IP:PORT");
+            return;
+          }
+          window.location.href = `minecraft://connect?serverUrl=${ip}&serverPort=${port}`;
+        });
+        container.appendChild(btn);
+      } else if (!input.value.trim()) {
+        const existingBtn = document.getElementById("mcConnectBtn");
+        if (existingBtn) existingBtn.remove();
+      }
+    };
+
+    input.removeEventListener("input", updateButton);
+    input.addEventListener("input", updateButton);
+  }
+
+  clearMinecraftConnectUI() {
+    const container = this.elements.minecraftConnectContainer;
+    container.innerHTML = "";
   }
 
   updateParticipantsList(participants) {
     this.elements.participantsList.innerHTML = "";
-    
+
     participants.forEach(p => {
       const info = p.getDisplayInfo();
       const div = document.createElement("div");
       div.className = "participant";
-      
+
       const distanceText = info.isSelf ? '' : ` - ${info.distance}m`;
       const volumeIcon = info.volume === 0 ? '🔇' : info.volume < 0.3 ? '🔉' : '🔊';
-      
+
       div.innerHTML = `
         <span class="participant-icon">👤</span>
         <span class="participant-name">${info.gamertag}${info.isSelf ? ' (You)' : ''}${distanceText}</span>
         ${!info.isSelf ? `<span class="volume-indicator">${volumeIcon}</span>` : ''}
       `;
-      
+
       this.elements.participantsList.appendChild(div);
     });
   }
