@@ -11,8 +11,6 @@ class AudioEffectsManager {
     this.currentEffect = "none";
     this.inputNode = null;
     this.processedStream = null;
-    // Agregar flag para prevenir aplicación múltiple
-    this.isApplyingEffect = false;
   }
 
   async init() {
@@ -28,171 +26,91 @@ class AudioEffectsManager {
     return this.inputNode;
   }
 
-  // Nuevo método para limpiar completamente todos los efectos
-  cleanupAllEffects() {
-    // Desconectar el input node primero
-    if (this.inputNode) {
-      try {
-        this.inputNode.disconnect();
-      } catch (e) {
-        console.log("Input node already disconnected");
-      }
-    }
+  applyEffect(effect, peerConnections) {
+    if (!this.inputNode) return;
 
-    // Limpiar nodos dinámicos
-    this.dynamicNodes.forEach(node => {
-      try {
-        node.disconnect();
-        node.dispose();
-      } catch (e) {
-        console.log("Node cleanup error:", e);
-      }
+    // Limpiar efectos anteriores
+    this.dynamicNodes.forEach(n => {
+      try { n.disconnect(); n.dispose(); } catch (e) {}
     });
     this.dynamicNodes = [];
 
-    // Desconectar efectos compartidos
-    try {
-      this.reverb.disconnect();
-      this.filter.disconnect();
-      this.chorus.disconnect();
-    } catch (e) {
-      console.log("Shared effects already disconnected");
-    }
-  }
-
-  // Nuevo método para resetear efectos compartidos a valores por defecto
-  resetSharedEffects() {
-    // Resetear filtro
-    this.filter.type = "lowpass";
-    this.filter.frequency.value = 1200;
-    this.filter.Q.value = 1;
-    
-    // Resetear reverb
-    this.reverb.decay = 2.5;
-    this.reverb.wet.value = 0.35;
-    
-    // Resetear chorus
-    this.chorus.frequency.value = 1.5;
-    this.chorus.delayTime.value = 3.5;
-    this.chorus.depth.value = 0.7;
-    this.chorus.wet.value = 0.25;
-  }
-
-  async applyEffect(effect, peerConnections) {
-    if (!this.inputNode) return;
-
-    // Prevenir aplicación múltiple simultánea
-    if (this.isApplyingEffect) {
-      console.log("⏳ Already applying effect, skipping...");
-      return;
-    }
-
-    // Si es el mismo efecto, no hacer nada
-    if (this.currentEffect === effect) {
-      console.log(`🔄 Effect already applied: ${effect}`);
-      return;
-    }
-
-    this.isApplyingEffect = true;
-    console.log(`🎵 Changing effect from "${this.currentEffect}" to "${effect}"`);
-
-    // Limpiar TODOS los efectos anteriores
-    this.cleanupAllEffects();
-
-    // Pequeño delay para asegurar que todo se limpió
-    await new Promise(resolve => setTimeout(resolve, 50));
-
     const audioContext = Tone.context.rawContext || Tone.context._context;
     const dest = audioContext.createMediaStreamDestination();
+    this.inputNode.disconnect();
 
-    // Resetear parámetros de efectos compartidos
-    this.resetSharedEffects();
+    switch (effect) {
+      case "underwater":
+        this.filter.type = "lowpass";
+        this.filter.frequency.value = 500;
+        this.filter.Q.value = 1;
+        this.reverb.decay = 2.8;
+        this.reverb.wet.value = 0.5;
+        this.inputNode.chain(this.filter, this.reverb, dest);
+        break;
 
-    try {
-      switch (effect) {
-        case "underwater":
-          this.filter.type = "lowpass";
-          this.filter.frequency.value = 500;
-          this.filter.Q.value = 1;
-          this.reverb.decay = 2.8;
-          this.reverb.wet.value = 0.5;
-          await this.reverb.generate();
-          this.inputNode.chain(this.filter, this.reverb, dest);
-          break;
+      case "cave":
+        const caveDelay = new Tone.FeedbackDelay("0.15", 0.35);
+        const caveReverb = new Tone.Reverb({ decay: 5, wet: 0.6 });
+        const caveEQ = new Tone.EQ3(-2, 0, -1);
+        this.dynamicNodes.push(caveDelay, caveReverb, caveEQ);
+        this.inputNode.chain(caveEQ, caveReverb, caveDelay, dest);
+        break;
 
-        case "cave":
-          const caveDelay = new Tone.FeedbackDelay("0.15", 0.35);
-          const caveReverb = new Tone.Reverb({ decay: 5, wet: 0.6 });
-          const caveEQ = new Tone.EQ3(-2, 0, -1);
-          this.dynamicNodes.push(caveDelay, caveReverb, caveEQ);
-          await caveReverb.generate();
-          this.inputNode.chain(caveEQ, caveReverb, caveDelay, dest);
-          break;
+      case "mountain":
+        const mountainDelay = new Tone.FeedbackDelay("0.4", 0.45);
+        const mountainReverb = new Tone.Reverb({ decay: 9, wet: 0.6 });
+        const mountainEQ = new Tone.EQ3(-3, 1, -2);
+        this.dynamicNodes.push(mountainDelay, mountainReverb, mountainEQ);
+        this.inputNode.chain(mountainEQ, mountainReverb, mountainDelay, dest);
+        break;
 
-        case "mountain":
-          const mountainDelay = new Tone.FeedbackDelay("0.4", 0.45);
-          const mountainReverb = new Tone.Reverb({ decay: 9, wet: 0.6 });
-          const mountainEQ = new Tone.EQ3(-3, 1, -2);
-          this.dynamicNodes.push(mountainDelay, mountainReverb, mountainEQ);
-          await mountainReverb.generate();
-          this.inputNode.chain(mountainEQ, mountainReverb, mountainDelay, dest);
-          break;
+      case "buried":
+        const muffled = new Tone.Filter({ type: "lowpass", frequency: 300, Q: 1 });
+        const crusher = new Tone.BitCrusher(6);
+        const lfo = new Tone.LFO("0.3Hz", 250, 600).start();
+        lfo.connect(muffled.frequency);
+        const buriedReverb = new Tone.Reverb({ decay: 3, wet: 0.5 });
+        const gainNode = new Tone.Gain(0.9);
+        this.dynamicNodes.push(muffled, crusher, lfo, buriedReverb, gainNode);
+        this.inputNode.chain(crusher, muffled, buriedReverb, gainNode, dest);
+        break;
 
-        case "buried":
-          const muffled = new Tone.Filter({ type: "lowpass", frequency: 300, Q: 1 });
-          const crusher = new Tone.BitCrusher(6);
-          const lfo = new Tone.LFO("0.3Hz", 250, 600).start();
-          lfo.connect(muffled.frequency);
-          const buriedReverb = new Tone.Reverb({ decay: 3, wet: 0.5 });
-          const gainNode = new Tone.Gain(0.9);
-          this.dynamicNodes.push(muffled, crusher, lfo, buriedReverb, gainNode);
-          await buriedReverb.generate();
-          this.inputNode.chain(crusher, muffled, buriedReverb, gainNode, dest);
-          break;
+      default:
+        this.inputNode.connect(dest);
+        break;
+    }
 
-        case "none":
-        default:
-          // Para efecto "none", conectar directamente sin efectos
-          this.inputNode.connect(dest);
-          break;
+    this.processedStream = dest.stream;
+    this.currentEffect = effect;
+
+    // CRÍTICO: Actualizar el track en TODAS las conexiones
+    if (this.processedStream && peerConnections) {
+      const newTrack = this.processedStream.getAudioTracks()[0];
+      
+      if (!newTrack) {
+        console.error("❌ No audio track found in processedStream");
+        return;
       }
-
-      this.processedStream = dest.stream;
-      this.currentEffect = effect;
-
-      // CRÍTICO: Actualizar el track en TODAS las conexiones
-      if (this.processedStream && peerConnections) {
-        const newTrack = this.processedStream.getAudioTracks()[0];
+      
+      console.log(`🔄 Changing effect to: ${effect}`);
+      
+      peerConnections.forEach((pc, gamertag) => {
+        const senders = pc.getSenders();
+        const audioSender = senders.find(s => s.track && s.track.kind === "audio");
         
-        if (!newTrack) {
-          console.error("❌ No audio track found in processedStream");
-          return;
+        if (audioSender) {
+          audioSender.replaceTrack(newTrack)
+            .then(() => {
+              console.log(`✓ Audio track updated for ${gamertag} (${effect})`);
+            })
+            .catch(e => {
+              console.error(`❌ Error updating audio track for ${gamertag}:`, e);
+            });
+        } else {
+          console.warn(`⚠️ No audio sender found for ${gamertag}`);
         }
-        
-        console.log(`✓ Effect applied: ${effect}`);
-        
-        // Actualizar tracks en todas las conexiones peer
-        peerConnections.forEach((pc, gamertag) => {
-          const senders = pc.getSenders();
-          const audioSender = senders.find(s => s.track && s.track.kind === "audio");
-          
-          if (audioSender) {
-            audioSender.replaceTrack(newTrack)
-              .then(() => {
-                console.log(`✓ Audio track updated for ${gamertag} (${effect})`);
-              })
-              .catch(e => {
-                console.error(`❌ Error updating audio track for ${gamertag}:`, e);
-              });
-          } else {
-            console.warn(`⚠️ No audio sender found for ${gamertag}`);
-          }
-        });
-      }
-    } catch (error) {
-      console.error("❌ Error applying effect:", error);
-    } finally {
-      this.isApplyingEffect = false;
+      });
     }
   }
 
@@ -208,24 +126,6 @@ class AudioEffectsManager {
 
   getCurrentEffect() {
     return this.currentEffect;
-  }
-
-  // Método de debug para verificar el estado de los efectos
-  debugEffectsState() {
-    console.log("=== EFFECTS STATE ===");
-    console.log("Current Effect:", this.currentEffect);
-    console.log("Is Applying:", this.isApplyingEffect);
-    console.log("Dynamic Nodes Count:", this.dynamicNodes.length);
-    console.log("Reverb Settings:", {
-      decay: this.reverb.decay,
-      wet: this.reverb.wet.value
-    });
-    console.log("Filter Settings:", {
-      type: this.filter.type,
-      frequency: this.filter.frequency.value,
-      Q: this.filter.Q.value
-    });
-    console.log("===================");
   }
 }
 
@@ -608,9 +508,6 @@ class MinecraftIntegration {
     this.minecraftData = null;
     this.currentGamertag = "";
     this.isPlayerInGame = false;
-    // Agregar cooldown para cambios de efectos
-    this.lastEffectChangeTime = 0;
-    this.effectChangeCooldown = 500; // medio segundo entre cambios
   }
 
   setGamertag(gamertag) {
@@ -651,11 +548,7 @@ class MinecraftIntegration {
   }
 
   handlePlayerNotInGame(wasInGame) {
-    if (wasInGame) {
-      console.log("❌ Disconnected from Minecraft server");
-      // Resetear efectos al desconectarse
-      this.audioEffects.applyEffect("none", this.webrtcManager?.peerConnections || null);
-    }
+    if (wasInGame) console.log("❌ Disconnected from Minecraft server");
     
     this.micManager.setEnabled(false);
     
@@ -668,28 +561,14 @@ class MinecraftIntegration {
   }
 
   applyEnvironmentalEffects(myPlayer) {
-    // Implementar cooldown para evitar cambios muy rápidos
-    const now = Date.now();
-    if (now - this.lastEffectChangeTime < this.effectChangeCooldown) {
-      return;
-    }
-
     let targetEffect = "none";
     
-    // Prioridad de efectos (más específico primero)
-    if (myPlayer.data.isBuried) {
-      targetEffect = "buried";
-    } else if (myPlayer.data.isUnderWater) {
-      targetEffect = "underwater";
-    } else if (myPlayer.data.isInCave) {
-      targetEffect = "cave";
-    } else if (myPlayer.data.isInMountain) {
-      targetEffect = "mountain";
-    }
+    if (myPlayer.data.isUnderWater) targetEffect = "underwater";
+    else if (myPlayer.data.isInCave) targetEffect = "cave";
+    else if (myPlayer.data.isInMountain) targetEffect = "mountain";
+    else if (myPlayer.data.isBuried) targetEffect = "buried";
 
     if (targetEffect !== this.audioEffects.getCurrentEffect()) {
-      console.log(`🌍 Environment changed: ${this.audioEffects.getCurrentEffect()} → ${targetEffect}`);
-      this.lastEffectChangeTime = now;
       // CRÍTICO: Pasar las conexiones WebRTC para actualizar los tracks
       this.audioEffects.applyEffect(targetEffect, this.webrtcManager?.peerConnections || null);
     }
@@ -720,36 +599,6 @@ class MinecraftIntegration {
 
   isInGame() {
     return this.isPlayerInGame;
-  }
-
-  // Método de debug para verificar el estado del entorno
-  debugEnvironmentState() {
-    if (!this.minecraftData || !this.currentGamertag) {
-      console.log("No Minecraft data available");
-      return;
-    }
-
-    const playersList = Array.isArray(this.minecraftData) 
-      ? this.minecraftData 
-      : this.minecraftData.players;
-      
-    const myPlayer = playersList.find(
-      p => p.name.trim().toLowerCase() === this.currentGamertag.trim().toLowerCase()
-    );
-
-    if (myPlayer) {
-      console.log("=== ENVIRONMENT STATE ===");
-      console.log("Player:", myPlayer.name);
-      console.log("Position:", myPlayer.location);
-      console.log("Environment:", {
-        isUnderWater: myPlayer.data.isUnderWater,
-        isInCave: myPlayer.data.isInCave,
-        isInMountain: myPlayer.data.isInMountain,
-        isBuried: myPlayer.data.isBuried
-      });
-      console.log("Current Effect:", this.audioEffects.getCurrentEffect());
-      console.log("========================");
-    }
   }
 }
 
@@ -1377,13 +1226,9 @@ window.addEventListener("DOMContentLoaded", async () => {
   window.debugAudio = () => app.debugAudioState();
   window.testAudio = () => app.testAudioOutput();
   window.diagnoseWebRTC = () => app.diagnoseWebRTC();
-  window.debugEffects = () => app.audioEffects.debugEffectsState();
-  window.debugEnvironment = () => app.minecraft.debugEnvironmentState();
   
   console.log("💡 Available Commands:");
   console.log("  - debugAudio() → Check audio state");
   console.log("  - testAudio() → Generate test tone (440Hz)");
   console.log("  - diagnoseWebRTC() → Comprehensive WebRTC diagnosis");
-  console.log("  - debugEffects() → Check current audio effects state");
-  console.log("  - debugEnvironment() → Check Minecraft environment state");
 });
