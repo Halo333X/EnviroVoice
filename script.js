@@ -1,4 +1,9 @@
 // =====================================================
+// CONSTANTES GLOBALES
+// =====================================================
+const MAX_DISTANCE = 30; // Distancia máxima en bloques para el audio espacial
+
+// =====================================================
 // CLASE: AudioEffectsManager
 // Maneja efectos de audio (reverb, cave, underwater, etc.)
 // =====================================================
@@ -401,8 +406,7 @@ class WebRTCManager {
         // Calcular volumen inicial
         let volume = 0;
         if (participant.distance > 0 && this.minecraft && this.minecraft.isInGame()) {
-          const maxDist = 30;
-          volume = participant.distance > maxDist ? 0 : Math.pow(1 - (participant.distance / maxDist), 2);
+          volume = participant.distance > MAX_DISTANCE ? 0 : Math.pow(1 - (participant.distance / MAX_DISTANCE), 2);
         }
         
         participant.updateVolume(volume);
@@ -477,7 +481,7 @@ class WebRTCManager {
 // Calcula distancias y volumen basado en posición 3D
 // =====================================================
 class DistanceCalculator {
-  constructor(maxDistance = 30) {
+  constructor(maxDistance = MAX_DISTANCE) {
     this.maxDistance = maxDistance;
   }
 
@@ -778,7 +782,7 @@ class VoiceChatApp {
     this.audioEffects = new AudioEffectsManager();
     this.micManager = new MicrophoneManager(this.audioEffects);
     this.participantsManager = new ParticipantsManager();
-    this.distanceCalculator = new DistanceCalculator(30);
+    this.distanceCalculator = new DistanceCalculator(20);
     this.webrtc = new WebRTCManager(
       this.participantsManager,
       this.audioEffects,
