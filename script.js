@@ -401,7 +401,7 @@ class WebRTCManager {
         // Calcular volumen inicial
         let volume = 0;
         if (participant.distance > 0 && this.minecraft && this.minecraft.isInGame()) {
-          const maxDist = 20;
+          const maxDist = 30;
           volume = participant.distance > maxDist ? 0 : Math.pow(1 - (participant.distance / maxDist), 2);
         }
         
@@ -477,7 +477,7 @@ class WebRTCManager {
 // Calcula distancias y volumen basado en posición 3D
 // =====================================================
 class DistanceCalculator {
-  constructor(maxDistance = 20) {
+  constructor(maxDistance = 30) {
     this.maxDistance = maxDistance;
   }
 
@@ -778,7 +778,7 @@ class VoiceChatApp {
     this.audioEffects = new AudioEffectsManager();
     this.micManager = new MicrophoneManager(this.audioEffects);
     this.participantsManager = new ParticipantsManager();
-    this.distanceCalculator = new DistanceCalculator(20);
+    this.distanceCalculator = new DistanceCalculator(30);
     this.webrtc = new WebRTCManager(
       this.participantsManager,
       this.audioEffects,
