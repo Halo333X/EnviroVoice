@@ -1,0 +1,269 @@
+/* ===== Reset básico ===== */
+@font-face {
+  font-family: 'mc-reg';
+  src: url('fonts/1_Minecraft-Regular.otf') format('truetype');
+}
+
+* {
+  font-family: 'mc-reg';
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  transition: background 0.3s, color 0.3s;
+}
+
+h3 {
+  margin-bottom: 10px;
+}
+
+/* ===== Variables de color ===== */
+:root {
+  /* Light mode */
+  --bg: #f0f4f8;
+  --card-bg: rgba(255, 255, 255, 0.85);
+  --text: #1e293b;
+  --text-muted: #64748b;
+  --accent: #5769CC; /* azul intermedio */
+  --button-bg: #5769CC; /* azul intermedio */
+  --button-hover: #4556B6;
+}
+
+/* Dark mode */
+body.dark-mode {
+  --bg: #0f172a;
+  --card-bg: rgba(30, 41, 59, 0.85);
+  --text: #fff;
+  --text-muted: #94a3b8;
+  --accent: #E589B4;
+  --button-bg: #E589B4;
+  --button-hover: #d373a0;
+}
+
+/* ===== Contenedor principal ===== */
+.container {
+  width: 90%;
+  max-width: 800px;
+  padding: 40px;
+  border-radius: 24px;
+  background: var(--card-bg);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(0,0,0,0.1);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  transition: background 0.3s, border 0.3s;
+}
+
+/* ===== Header ===== */
+.header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.header h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  background: linear-gradient(to right, var(--accent), var(--button-bg));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 8px;
+}
+
+.header p {
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
+.title-img {
+  width: 80%; /* ajusta según tu diseño */
+  display: block;
+  margin: 0 auto 20px;
+}
+
+.title-dark {
+  display: none; /* por defecto no mostrar dark */
+}
+
+body.dark-mode .title-light {
+  display: none; /* ocultar light en modo dark */
+}
+
+body.dark-mode .title-dark {
+  display: block; /* mostrar dark */
+}
+
+/* ===== Inputs y secciones ===== */
+.section {
+  margin-bottom: 32px;
+}
+
+.input-field {
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.2);
+  background-color: rgba(255,255,255,0.2);
+  color: var(--text);
+  font-size: 1rem;
+  transition: all 0.2s;
+  margin-top: 10px;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
+}
+
+/* ===== Status Text ===== */
+.status-text {
+  margin-top: 8px;
+  font-size: 0.875rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+/* ===== Botones ===== */
+.primary-btn, .control-btn {
+  width: 100%;
+  padding: 14px 28px;
+  font-weight: 600;
+  border-radius: 16px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #fff;
+  background: var(--button-bg);
+}
+
+.primary-btn:hover, .control-btn:hover {
+  background: var(--button-hover);
+  transform: scale(1.03);
+}
+
+.control-btn.exit {
+  background: #ef4444;
+}
+
+.control-btn.exit:hover {
+  background: #dc2626;
+}
+
+#connectToRoomBtn {
+  margin-top: 10px;
+}
+
+/* ===== Call Controls ===== */
+.call-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.controls-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+/* ===== Volume & Participants ===== */
+.volume-control, .participants-section, #gameStatus {
+  background: rgba(255,255,255,0.15);
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid rgba(0,0,0,0.1);
+  transition: background 0.3s, border 0.3s;
+}
+
+.volume-slider-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.slider {
+  flex: 1;
+  height: 6px;
+  border-radius: 5px;
+  background: rgba(0,0,0,0.2);
+}
+
+.slider::-webkit-slider-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.slider::-webkit-slider-thumb:hover {
+  background: var(--button-bg);
+}
+
+/* ===== Participants ===== */
+.participants-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.participant {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 12px;
+  transition: background 0.2s;
+}
+
+.participant:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+.participant-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+#darkModeToggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 10px;
+  background: var(--accent);
+  border-radius: 12px;
+  cursor: pointer;
+  border: none;
+  z-index: 1000;
+  transition: background 0.3s, transform 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#darkModeToggle:hover {
+  background: var(--button-hover);
+  transform: scale(1.1);
+}
+
+#darkModeToggle img {
+  display: block;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .controls-row {
+    flex-direction: column;
+  }
+}
