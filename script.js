@@ -1,7 +1,7 @@
 // =====================================================
 // CONSTANTES GLOBALES
 // =====================================================
-const MAX_DISTANCE = 50; // Distancia máxima en bloques para el audio espacial
+const MAX_DISTANCE = 20; // Distancia máxima en bloques para el audio espacial
 
 // =====================================================
 // CLASE: AudioEffectsManager
@@ -378,6 +378,32 @@ class WebRTCManager {
       }
     };
 
+    // NUEVO: Manejo de renegociación cuando cambian los tracks
+    pc.onnegotiationneeded = async () => {
+      console.log(`🔄 Renegotiation needed with ${remoteGamertag}`);
+      try {
+        if (pc.signalingState !== 'stable') {
+          console.log(`⚠️ Signaling state is ${pc.signalingState}, skipping renegotiation`);
+          return;
+        }
+        
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        
+        if (this.ws && this.ws.readyState === 1) {
+          this.ws.send(JSON.stringify({
+            type: 'offer',
+            offer: offer,
+            from: this.currentGamertag,
+            to: remoteGamertag
+          }));
+          console.log(`✓ Renegotiation offer sent to ${remoteGamertag}`);
+        }
+      } catch (e) {
+        console.error(`❌ Renegotiation failed with ${remoteGamertag}:`, e);
+      }
+    };
+
     // Audio entrante - SOLUCIÓN SIMPLIFICADA: Solo usar <audio> element
     pc.ontrack = (event) => {
       console.log(`🎵 ${remoteGamertag} connected`);
@@ -427,14 +453,40 @@ class WebRTCManager {
     };
 
     pc.onconnectionstatechange = () => {
+      console.log(`🔌 ${remoteGamertag} - Connection state: ${pc.connectionState}`);
+      
       if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
         console.log(`🔌 ${remoteGamertag} disconnected`);
       }
+      
+      if (pc.connectionState === 'connected') {
+        console.log(`✅ ${remoteGamertag} - Connection fully established`);
+        // Forzar actualización de volumen
+        setTimeout(() => {
+          if (this.minecraft && this.minecraft.isInGame()) {
+            this.minecraft.processUpdate();
+          }
+        }, 500);
+      }
     };
 
+    // MEJORADO: Manejo de estado ICE con restart automático
     pc.oniceconnectionstatechange = () => {
+      console.log(`❄️ ${remoteGamertag} - ICE: ${pc.iceConnectionState}`);
+      
+      if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
+        console.log(`✅ ${remoteGamertag} - ICE connection established successfully`);
+        // Forzar actualización de audio después de conexión exitosa
+        setTimeout(() => {
+          if (this.minecraft && this.minecraft.isInGame()) {
+            this.minecraft.processUpdate();
+          }
+        }, 500);
+      }
+      
       if (pc.iceConnectionState === 'failed') {
-        console.log(`❄️ ${remoteGamertag} - Failed in ICE connection`);
+        console.log(`❌ ${remoteGamertag} - ICE failed, attempting restart`);
+        pc.restartIce();
       }
     };
 
@@ -473,6 +525,53 @@ class WebRTCManager {
 
   forEach(callback) {
     this.peerConnections.forEach(callback);
+  }
+
+  // NUEVO: Método para reconectar a todos los peers (solución drástica pero efectiva)
+  async reconnectAllPeers() {
+    console.log("🔄 RECONNECTING ALL PEERS...");
+    
+    // Guardar lista de gamertags antes de cerrar conexiones
+    const gamertags = Array.from(this.peerConnections.keys());
+    
+    if (gamertags.length === 0) {
+      console.log("✓ No peers to reconnect");
+      return;
+    }
+    
+    console.log(`📋 Peers to reconnect: ${gamertags.join(', ')}`);
+    
+    // Cerrar todas las conexiones
+    this.closeAllConnections();
+    
+    // Esperar un momento para asegurar limpieza
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Reconectar con cada uno
+    for (const gamertag of gamertags) {
+      try {
+        console.log(`🔗 Reconnecting with ${gamertag}...`);
+        const pc = await this.createPeerConnection(gamertag);
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        
+        if (this.ws && this.ws.readyState === 1) {
+          this.ws.send(JSON.stringify({
+            type: 'offer',
+            offer: offer,
+            from: this.currentGamertag,
+            to: gamertag
+          }));
+        }
+        
+        // Pequeña pausa entre conexiones para evitar sobrecarga
+        await new Promise(resolve => setTimeout(resolve, 300));
+      } catch (e) {
+        console.error(`❌ Failed to reconnect with ${gamertag}:`, e);
+      }
+    }
+    
+    console.log("✅ Reconnection process complete");
   }
 }
 
@@ -907,8 +1006,14 @@ class VoiceChatApp {
   async handleSignaling(data) {
     try {
       if (data.type === 'join' && data.gamertag !== this.currentGamertag) {
+        console.log(`👋 ${data.gamertag} joined the room`);
         this.participantsManager.add(data.gamertag, false);
         
+        // SOLUCIÓN DRÁSTICA: Reconectar a TODOS cuando alguien se une
+        console.log("⚡ Triggering full reconnection due to new participant");
+        await this.webrtc.reconnectAllPeers();
+        
+        // Crear conexión con el nuevo participante
         if (!this.webrtc.getPeerConnection(data.gamertag)) {
           const pc = await this.webrtc.createPeerConnection(data.gamertag);
           const offer = await pc.createOffer();
@@ -924,11 +1029,18 @@ class VoiceChatApp {
         this.updateUI();
       }
       else if (data.type === 'leave') {
+        console.log(`👋 ${data.gamertag} left the room`);
         this.participantsManager.remove(data.gamertag);
         this.webrtc.closePeerConnection(data.gamertag);
+        
+        // SOLUCIÓN DRÁSTICA: Reconectar a TODOS cuando alguien sale
+        console.log("⚡ Triggering full reconnection due to participant leaving");
+        await this.webrtc.reconnectAllPeers();
+        
         this.updateUI();
       }
       else if (data.type === 'offer' && data.to === this.currentGamertag) {
+        console.log(`📨 Received offer from ${data.from}`);
         this.participantsManager.add(data.from, false);
         
         const pc = await this.webrtc.createPeerConnection(data.from);
@@ -944,14 +1056,17 @@ class VoiceChatApp {
             from: this.currentGamertag,
             to: data.from
           }));
+          console.log(`📤 Sent answer to ${data.from}`);
         }
         this.updateUI();
       }
       else if (data.type === 'answer' && data.to === this.currentGamertag) {
+        console.log(`📨 Received answer from ${data.from}`);
         const pc = this.webrtc.getPeerConnection(data.from);
         
         if (pc && pc.signalingState === 'have-local-offer') {
           await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+          console.log(`✓ Answer applied for ${data.from}`);
         }
       }
       else if (data.type === 'ice-candidate' && data.to === this.currentGamertag) {
@@ -961,6 +1076,7 @@ class VoiceChatApp {
         }
       }
       else if (data.type === 'participants-list') {
+        console.log(`📋 Received participants list: ${data.list.join(', ')}`);
         data.list.forEach(gt => {
           if (gt !== this.currentGamertag) {
             this.participantsManager.add(gt, false);
@@ -1147,6 +1263,7 @@ class VoiceChatApp {
     
     console.log("\n=================================");
   }
+  
   diagnoseWebRTC() {
     console.log("=== WEBRTC DIAGNOSIS ===");
     
@@ -1236,4 +1353,3 @@ window.addEventListener("DOMContentLoaded", async () => {
   console.log("  - testAudio() → Generate test tone (440Hz)");
   console.log("  - diagnoseWebRTC() → Comprehensive WebRTC diagnosis");
 });
-
