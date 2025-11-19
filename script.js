@@ -1009,11 +1009,7 @@ class VoiceChatApp {
         console.log(`👋 ${data.gamertag} joined the room`);
         this.participantsManager.add(data.gamertag, false);
         
-        // SOLUCIÓN DRÁSTICA: Reconectar a TODOS cuando alguien se une
-        console.log("⚡ Triggering full reconnection due to new participant");
-        await this.webrtc.reconnectAllPeers();
-        
-        // Crear conexión con el nuevo participante
+        // Solo crear conexión con el nuevo participante (NO reconectar a todos)
         if (!this.webrtc.getPeerConnection(data.gamertag)) {
           const pc = await this.webrtc.createPeerConnection(data.gamertag);
           const offer = await pc.createOffer();
@@ -1353,4 +1349,3 @@ window.addEventListener("DOMContentLoaded", async () => {
   console.log("  - testAudio() → Generate test tone (440Hz)");
   console.log("  - diagnoseWebRTC() → Comprehensive WebRTC diagnosis");
 });
-
