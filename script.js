@@ -1,7 +1,7 @@
 // =====================================================
 // CONSTANTES GLOBALES
 // =====================================================
-const MAX_DISTANCE = 20; // Distancia máxima en bloques para el audio espacial
+const MAX_DISTANCE = 50; // Distancia máxima en bloques para el audio espacial
 
 // =====================================================
 // CLASE: AudioEffectsManager
@@ -1353,3 +1353,4 @@ window.addEventListener("DOMContentLoaded", async () => {
   console.log("  - testAudio() → Generate test tone (440Hz)");
   console.log("  - diagnoseWebRTC() → Comprehensive WebRTC diagnosis");
 });
+
