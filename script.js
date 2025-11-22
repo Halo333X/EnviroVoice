@@ -1,7 +1,7 @@
 // =====================================================
 // CONSTANTES GLOBALES
 // =====================================================
-const MAX_DISTANCE = 50; // Distancia máxima en bloques para el audio espacial
+const MAX_DISTANCE = 20; // Distancia máxima en bloques para el audio espacial
 
 // =====================================================
 // CLASE: AudioEffectsManager
@@ -378,8 +378,17 @@ class WebRTCManager {
       }
     };
 
-    // NUEVO: Manejo de renegociación cuando cambian los tracks
+    // Bandera para controlar renegociación
+    pc._isInitialConnection = true;
+
+    // Manejo de renegociación - SOLO cuando la conexión ya está establecida
     pc.onnegotiationneeded = async () => {
+      // Ignorar durante la conexión inicial
+      if (pc._isInitialConnection) {
+        console.log(`⏳ Skipping renegotiation with ${remoteGamertag} (initial connection in progress)`);
+        return;
+      }
+      
       console.log(`🔄 Renegotiation needed with ${remoteGamertag}`);
       try {
         if (pc.signalingState !== 'stable') {
@@ -455,12 +464,22 @@ class WebRTCManager {
     pc.onconnectionstatechange = () => {
       console.log(`🔌 ${remoteGamertag} - Connection state: ${pc.connectionState}`);
       
-      if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
+      if (pc.connectionState === 'disconnected') {
         console.log(`🔌 ${remoteGamertag} disconnected`);
+      }
+      
+      if (pc.connectionState === 'failed') {
+        console.log(`❌ ${remoteGamertag} connection failed - attempting reconnection...`);
+        // Intentar reconectar automáticamente después de una falla
+        this.attemptReconnect(remoteGamertag);
       }
       
       if (pc.connectionState === 'connected') {
         console.log(`✅ ${remoteGamertag} - Connection fully established`);
+        // Marcar que ya no es conexión inicial - ahora sí permitir renegociación
+        pc._isInitialConnection = false;
+        // Resetear contador de reintentos
+        pc._reconnectAttempts = 0;
         // Forzar actualización de volumen
         setTimeout(() => {
           if (this.minecraft && this.minecraft.isInGame()) {
@@ -527,7 +546,46 @@ class WebRTCManager {
     this.peerConnections.forEach(callback);
   }
 
-  // NUEVO: Método para reconectar a todos los peers (solución drástica pero efectiva)
+  // NUEVO: Método para intentar reconectar con un peer específico
+  async attemptReconnect(remoteGamertag) {
+    const oldPc = this.peerConnections.get(remoteGamertag);
+    const attempts = (oldPc?._reconnectAttempts || 0) + 1;
+    
+    // Máximo 3 intentos
+    if (attempts > 3) {
+      console.log(`❌ ${remoteGamertag} - Max reconnection attempts reached (3)`);
+      return;
+    }
+    
+    console.log(`🔄 ${remoteGamertag} - Reconnection attempt ${attempts}/3`);
+    
+    // Cerrar conexión vieja
+    this.closePeerConnection(remoteGamertag);
+    
+    // Esperar un poco antes de reconectar
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    try {
+      const pc = await this.createPeerConnection(remoteGamertag);
+      pc._reconnectAttempts = attempts;
+      
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      
+      if (this.ws && this.ws.readyState === 1) {
+        this.ws.send(JSON.stringify({
+          type: 'offer',
+          offer: offer,
+          from: this.currentGamertag,
+          to: remoteGamertag
+        }));
+      }
+    } catch (e) {
+      console.error(`❌ Reconnection failed with ${remoteGamertag}:`, e);
+    }
+  }
+
+  // Método para reconectar a todos los peers (solución drástica pero efectiva)
   async reconnectAllPeers() {
     console.log("🔄 RECONNECTING ALL PEERS...");
     
