@@ -1,9 +1,4 @@
 // =====================================================
-// CONSTANTES GLOBALES
-// =====================================================
-const MAX_DISTANCE = 50; // Distancia máxima en bloques para el audio espacial
-
-// =====================================================
 // CLASE: AudioEffectsManager
 // Maneja efectos de audio (reverb, cave, underwater, etc.)
 // =====================================================
@@ -438,13 +433,8 @@ class WebRTCManager {
       if (participant) {
         participant.setAudioNodes(null, audioElement, null);
         
-        // Calcular volumen inicial
-        let volume = 0;
-        if (participant.distance > 0 && this.minecraft && this.minecraft.isInGame()) {
-          volume = participant.distance > MAX_DISTANCE ? 0 : Math.pow(1 - (participant.distance / MAX_DISTANCE), 2);
-        }
-        
-        participant.updateVolume(volume);
+        // Empezar con volumen 0, Minecraft calculará el volumen correcto
+        participant.updateVolume(0);
         
         // Forzar actualización después de medio segundo
         setTimeout(() => {
@@ -638,7 +628,7 @@ class WebRTCManager {
 // Calcula distancias y volumen basado en posición 3D
 // =====================================================
 class DistanceCalculator {
-  constructor(maxDistance = MAX_DISTANCE) {
+  constructor(maxDistance = 20) { // Valor por defecto, será sobrescrito por config de Minecraft
     this.maxDistance = maxDistance;
   }
 
@@ -669,10 +659,17 @@ class MinecraftIntegration {
     this.minecraftData = null;
     this.currentGamertag = "";
     this.isPlayerInGame = false;
+    this.remoteMuted = false; // NUEVO: Estado de mute desde Minecraft
+    this.onMuteChange = null; // NUEVO: Callback para notificar cambios de mute
   }
 
   setGamertag(gamertag) {
     this.currentGamertag = gamertag;
+  }
+
+  // NUEVO: Establecer callback para cambios de mute
+  setOnMuteChange(callback) {
+    this.onMuteChange = callback;
   }
 
   updateData(data) {
@@ -686,6 +683,15 @@ class MinecraftIntegration {
     const playersList = Array.isArray(this.minecraftData) 
       ? this.minecraftData 
       : this.minecraftData.players;
+    
+    // NUEVO: Actualizar distancia máxima si viene en la config
+    if (this.minecraftData.config && this.minecraftData.config.maxDistance) {
+      const newMaxDistance = this.minecraftData.config.maxDistance;
+      if (this.distanceCalculator.maxDistance !== newMaxDistance) {
+        console.log(`📏 Max distance updated: ${this.distanceCalculator.maxDistance} → ${newMaxDistance}`);
+        this.distanceCalculator.maxDistance = newMaxDistance;
+      }
+    }
       
     const myPlayer = playersList.find(
       p => p.name.trim().toLowerCase() === this.currentGamertag.trim().toLowerCase()
@@ -703,7 +709,22 @@ class MinecraftIntegration {
       console.log("✓ Connected to Minecraft server");
     }
 
-    this.micManager.setEnabled(!this.micManager.isMicMuted());
+    // NUEVO: Manejar mute desde Minecraft
+    const remoteMutedNow = myPlayer.data.isMuted || false;
+    if (remoteMutedNow !== this.remoteMuted) {
+      this.remoteMuted = remoteMutedNow;
+      console.log(`🎤 Remote mute changed: ${this.remoteMuted ? 'MUTED' : 'UNMUTED'}`);
+      
+      // Notificar al UI sobre el cambio
+      if (this.onMuteChange) {
+        this.onMuteChange(this.remoteMuted);
+      }
+    }
+
+    // Aplicar estado de mute (combinando mute local y remoto)
+    const shouldBeMuted = this.micManager.isMicMuted() || this.remoteMuted;
+    this.micManager.setEnabled(!shouldBeMuted);
+
     this.applyEnvironmentalEffects(myPlayer);
     this.updateParticipantVolumes(myPlayer, playersList);
   }
@@ -761,6 +782,11 @@ class MinecraftIntegration {
   isInGame() {
     return this.isPlayerInGame;
   }
+
+  // NUEVO: Verificar si está muteado remotamente
+  isRemoteMuted() {
+    return this.remoteMuted;
+  }
 }
 
 // =====================================================
@@ -810,11 +836,16 @@ class UIManager {
     this.elements.callControls.style.display = show ? "flex" : "none";
   }
 
-  updateMuteButton(isMuted, isInGame) {
+  updateMuteButton(isMuted, isInGame, isRemoteMuted = false) {
     if (!isInGame) {
       this.elements.muteBtn.textContent = "🔒 Locked";
       this.elements.muteBtn.className = "control-btn locked";
       this.elements.muteBtn.disabled = true;
+    } else if (isRemoteMuted) {
+      // Muteado desde Minecraft
+      this.elements.muteBtn.textContent = "🎮 Muted (MC)";
+      this.elements.muteBtn.className = "control-btn muted remote-muted";
+      this.elements.muteBtn.disabled = true; // No se puede cambiar desde la web
     } else {
       this.elements.muteBtn.textContent = isMuted ? "🔇 Unmute" : "🎤 Mute";
       this.elements.muteBtn.className = isMuted ? "control-btn muted" : "control-btn";
@@ -956,6 +987,12 @@ class VoiceChatApp {
     
     // Ahora asignar minecraft al webrtc
     this.webrtc.minecraft = this.minecraft;
+    
+    // NUEVO: Callback cuando cambia el mute desde Minecraft
+    this.minecraft.setOnMuteChange((isMuted) => {
+      console.log(`🎮 Minecraft mute changed: ${isMuted ? 'MUTED' : 'UNMUTED'}`);
+      this.updateUI();
+    });
     
     this.ws = null;
     this.currentGamertag = "";
@@ -1199,7 +1236,8 @@ class VoiceChatApp {
   updateUI() {
     this.ui.updateMuteButton(
       this.micManager.isMicMuted(),
-      this.minecraft.isInGame()
+      this.minecraft.isInGame(),
+      this.minecraft.isRemoteMuted() // NUEVO: Estado de mute remoto
     );
     this.ui.updateGameStatus(this.minecraft.isInGame());
     this.ui.updateParticipantsList(this.participantsManager.getAll());
@@ -1407,4 +1445,3 @@ window.addEventListener("DOMContentLoaded", async () => {
   console.log("  - testAudio() → Generate test tone (440Hz)");
   console.log("  - diagnoseWebRTC() → Comprehensive WebRTC diagnosis");
 });
-
