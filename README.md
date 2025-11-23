@@ -10,3 +10,7 @@ Apk: https://github.com/Halo333X/EnviroVoice/releases
 # Website for Desktop Users / Windows
 
 Website: https://halo333x.github.io/EnviroVoice/
+
+# Tutorial on Youtube
+
+Video: https://youtube.com
