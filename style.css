@@ -1,0 +1,486 @@
+/* ===== Reset básico ===== */
+@font-face {
+  font-family: 'mc-reg';
+  src: url('fonts/1_Minecraft-Regular.otf') format('truetype');
+}
+
+* {
+  font-family: 'mc-reg';
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  transition: background 0.3s, color 0.3s;
+}
+
+h3 {
+  margin-bottom: 10px;
+}
+
+/* ===== Variables de color ===== */
+:root {
+  /* Light mode */
+  --bg: #f0f4f8;
+  --card-bg: rgba(255, 255, 255, 0.85);
+  --text: #1e293b;
+  --text-muted: #64748b;
+  --accent: #5769CC; /* azul intermedio */
+  --button-bg: #5769CC; /* azul intermedio */
+  --button-hover: #4556B6;
+}
+
+/* Dark mode */
+body.dark-mode {
+  --bg: #0f172a;
+  --card-bg: rgba(30, 41, 59, 0.85);
+  --text: #fff;
+  --text-muted: #94a3b8;
+  --accent: #AE8AC1;
+  --button-bg: #AE8AC1;
+  --button-hover: #331C73;
+}
+
+/* ===== Contenedor principal ===== */
+.container {
+  width: 90%;
+  max-width: 800px;
+  padding: 40px;
+  border-radius: 24px;
+  background: var(--card-bg);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(0,0,0,0.1);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  transition: background 0.3s, border 0.3s;
+}
+
+/* ===== Header ===== */
+.header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.header h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  background: linear-gradient(to right, var(--accent), var(--button-bg));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 8px;
+}
+
+.header p {
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
+.title-img {
+  width: 80%; /* ajusta según tu diseño */
+  display: block;
+  margin: 0 auto 20px;
+}
+
+.title-dark {
+  display: none; /* por defecto no mostrar dark */
+}
+
+body.dark-mode .title-light {
+  display: none; /* ocultar light en modo dark */
+}
+
+body.dark-mode .title-dark {
+  display: block; /* mostrar dark */
+}
+
+/* ===== Inputs y secciones ===== */
+.section {
+  margin-bottom: 32px;
+}
+
+.input-field {
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.2);
+  background-color: rgba(255,255,255,0.2);
+  color: var(--text);
+  font-size: 1rem;
+  transition: all 0.2s;
+  margin-top: 10px;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
+}
+
+/* ===== Status Text ===== */
+.status-text {
+  margin-top: 8px;
+  font-size: 0.875rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+/* ===== Botones ===== */
+.primary-btn, .control-btn {
+  width: 100%;
+  padding: 14px 28px;
+  font-weight: 600;
+  border-radius: 16px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #fff;
+  background: var(--button-bg);
+}
+
+.primary-btn:hover, .control-btn:hover {
+  background: var(--button-hover);
+  transform: scale(1.03);
+}
+
+.control-btn.exit {
+  background: #ef4444;
+}
+
+.control-btn.exit:hover {
+  background: #dc2626;
+}
+
+#connectToRoomBtn {
+  margin-top: 10px;
+}
+
+/* ===== Call Controls ===== */
+.call-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.controls-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+/* ===== Microphone Selector ===== */
+.mic-selector-container {
+  background: rgba(255,255,255,0.15);
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid rgba(0,0,0,0.1);
+  transition: background 0.3s, border 0.3s;
+}
+
+.mic-selector-container label {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+.mic-selector {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.2);
+  background-color: rgba(255,255,255,0.2);
+  color: var(--text);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'mc-reg';
+}
+
+.mic-selector:hover {
+  background-color: rgba(255,255,255,0.3);
+  border-color: var(--accent);
+}
+
+.mic-selector:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
+}
+
+.mic-selector option {
+  background-color: var(--card-bg);
+  color: var(--text);
+  padding: 10px;
+}
+
+/* ===== Volume & Participants ===== */
+.volume-control, .participants-section, #gameStatus {
+  background: rgba(255,255,255,0.15);
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid rgba(0,0,0,0.1);
+  transition: background 0.3s, border 0.3s;
+}
+
+.volume-slider-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.slider {
+  flex: 1;
+  height: 6px;
+  border-radius: 5px;
+  background: rgba(0,0,0,0.2);
+}
+
+.slider::-webkit-slider-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.slider::-webkit-slider-thumb:hover {
+  background: var(--button-bg);
+}
+
+/* ===== Participants ===== */
+.participants-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.participant {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 12px;
+  transition: background 0.2s;
+}
+
+.participant:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+/* NUEVO: Estilos para las skins de Minecraft */
+.participant-skin {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  image-rendering: pixelated; /* Mantener el estilo pixelado de Minecraft */
+  background: rgba(0,0,0,0.1);
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+
+.participant:hover .participant-skin {
+  transform: scale(1.1);
+}
+
+.participant-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.participant-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text);
+  flex: 1;
+}
+
+.volume-indicator {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+#darkModeToggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 10px;
+  background: var(--accent);
+  border-radius: 12px;
+  cursor: pointer;
+  border: none;
+  z-index: 1000;
+  transition: background 0.3s, transform 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#darkModeToggle:hover {
+  background: var(--button-hover);
+  transform: scale(1.1);
+}
+
+#darkModeToggle img {
+  display: block;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .controls-row {
+    flex-direction: column;
+  }
+}
+
+/* ===== Push to Talk ===== */
+.ptt-container {
+  background: rgba(255,255,255,0.15);
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid rgba(0,0,0,0.1);
+  transition: background 0.3s, border 0.3s;
+}
+
+.ptt-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.ptt-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.ptt-checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+
+.ptt-key-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0,0,0,0.1);
+}
+
+.ptt-key-selector label {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.ptt-key-button {
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: 2px solid rgba(0,0,0,0.2);
+  background-color: rgba(255,255,255,0.2);
+  color: var(--text);
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 80px;
+  font-family: 'mc-reg';
+}
+
+.ptt-key-button:hover {
+  background-color: rgba(255,255,255,0.3);
+  border-color: var(--accent);
+  transform: scale(1.05);
+}
+
+.ptt-key-button:active {
+  transform: scale(0.98);
+}
+
+.ptt-key-button.listening {
+  border-color: var(--accent);
+  background-color: rgba(99,102,241,0.2);
+  animation: pulse 1.5s infinite;
+}
+
+.ptt-key-input {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 2px solid rgba(0,0,0,0.2);
+  background-color: rgba(255,255,255,0.2);
+  color: var(--text);
+  font-size: 1rem;
+  text-align: center;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ptt-key-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
+}
+
+.ptt-key-input.listening {
+  border-color: var(--accent);
+  background-color: rgba(99,102,241,0.1);
+  animation: pulse 1.5s infinite;
+}
+
+.ptt-key-display {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  text-align: center;
+  font-weight: 500;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* Indicador visual cuando Push-to-Talk está activo */
+.ptt-active-indicator {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: var(--accent);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  z-index: 1000;
+  animation: fadeIn 0.2s;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="shortcut icon" href="img/icon.png" type="image/x-icon">
+    <link rel="stylesheet" href="style.css" />
+    <title>EnviroVoice</title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <img src="img/title-light.png" alt="EnviroVoice" class="title-img title-light" />
+        <img src="img/title-dark.png" alt="EnviroVoice" class="title-img title-dark" />
+      </div>
+
+      <!-- Setup inicial -->
+      <div id="setupSection">
+        <div class="section">
+          <label for="gamertagInput">Minecraft Gamertag/Xbox Live Username:</label>
+          <input type="text" id="gamertagInput" class="input-field" />
+          <p id="gamertagStatus" class="status-text">
+            ⚠️ Enter your gamertag to continue
+          </p>
+        </div>
+
+        <div class="section">
+          <label for="roomUrlInput">Voice Channel URL:</label>
+          <input type="text" id="roomUrlInput" class="input-field" />
+          <button id="connectToRoomBtn" class="primary-btn">Join</button>
+          <p id="roomInfo" class="status-text"></p>
+        </div>
+      </div>
+
+      <!-- Controles de llamada -->
+      <div id="callControls" class="call-controls" style="display: none">
+        <!-- Selector de Micrófono -->
+        <div class="mic-selector-container">
+          <label for="micSelector">🎤 Select Microphone:</label>
+          <select id="micSelector" class="mic-selector">
+            <option value="">Loading microphones...</option>
+          </select>
+        </div>
+
+        <div class="controls-row">
+          <button id="exitBtn" class="control-btn exit">📞 Disconnect</button>
+        </div>
+
+        <!-- Push to Talk (solo PC) -->
+        <div id="pttContainer" class="ptt-container" style="display: none;">
+          <div class="ptt-header">
+            <label class="ptt-label">
+              <input type="checkbox" id="pttToggle" class="ptt-checkbox" />
+              <span>🎙️ Push to Talk (Hold key to speak)</span>
+            </label>
+          </div>
+          <div id="pttKeySelector" class="ptt-key-selector" style="display: none;">
+            <label for="pttKeyInput">Click to change key:</label>
+            <button type="button" id="pttKeyInput" class="ptt-key-button">V</button>
+            <span id="pttKeyDisplay" class="ptt-key-display">Press and hold to talk</span>
+          </div>
+        </div>
+
+        <div
+          id="gameStatus"
+          class="game-status"
+          style="
+            margin-top: 16px;
+            padding: 12px;
+            background: rgba(51, 65, 85, 0.5);
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.875rem;
+          "
+        >
+          <span style="color: #94a3b8">Loading...</span>
+        </div>
+
+        <div class="participants-section">
+          <h3>👥 Participants</h3>
+          <div id="participantsList" class="participants-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botón de modo -->
+    <button id="darkModeToggle"></button>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <script src="script.js"></script>
+    <script src="colorMode.js"></script>
+  </body>
+</html>
