@@ -13,11 +13,11 @@ Render: https://render.com/
 
 Apk: https://github.com/Halo333X/EnviroVoice/releases
 
-# EXE for Windows (**Push To Talk** available)
+# EXE for Windows Only (**Push To Talk** available)
 
 Exe: https://github.com/Halo333X/EnviroVoice/releases
 
-# Website for Desktop Users / Windows (**Push To Talk** function isn't available on website. Download the Exe file instead)
+# Website for All Desktop Users (**Push To Talk** function isn't available on website. Download the Exe file instead)
 
 Website: https://halo333x.github.io/EnviroVoice/
 
