@@ -9,9 +9,9 @@ Download: https://github.com/Halo333X/EnviroVoice/releases/tag/envirovoice-addon
 
 # Server for Render.com
 
-Server: https://github.com/Halo333X/EnviroVoice-Server
+Server: https://github.com/Halo333X/EnviroVoice-Server (Copy this link)
 
-Render: https://render.com/
+Render: https://render.com/ (Create the web service and paste the server link)
 
 # APK for Android
 
