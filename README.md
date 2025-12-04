@@ -15,11 +15,11 @@ Render: https://render.com/
 
 # APK for Android
 
-Apk: https://github.com/Halo333X/EnviroVoice/releases
+Apk: https://github.com/Halo333X/EnviroVoice/releases/tag/envirovoice-app
 
 # EXE for Windows Only (**Push To Talk** available)
 
-Exe: https://github.com/Halo333X/EnviroVoice/releases
+Exe: https://github.com/Halo333X/EnviroVoice/releases/tag/envirovoice-app
 
 # Website for All Desktop Users (**Push To Talk** function isn't available on website. Download the Exe file instead)
 
