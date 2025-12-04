@@ -2283,6 +2283,7 @@ class VoiceChatApp {
         console.log(
           "⚡ Triggering full reconnection due to participant leaving"
         );
+        await this.webrtc.reconnectAllPeers();
 
         this.updateUI();
       } else if (data.type === "offer" && data.to === this.currentGamertag) {
