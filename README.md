@@ -1,3 +1,9 @@
+# Server for Render.com
+
+Server: https://github.com/Halo333X/EnviroVoice-Server
+
+Render: https://render.com/
+
 # EnviroVoice
 A voice chat for Minecraft Bedrock that has voice filters depending on the environment
 
@@ -7,14 +13,14 @@ A voice chat for Minecraft Bedrock that has voice filters depending on the envir
 
 Apk: https://github.com/Halo333X/EnviroVoice/releases
 
-# EXE for Windows
+# EXE for Windows (**Push To Talk** available)
 
-Exe: 
+Exe: https://github.com/Halo333X/EnviroVoice/releases
 
-# Website for Desktop Users / Windows (*Push To Talk* function not available on website. Download the Exe file instead)
+# Website for Desktop Users / Windows (**Push To Talk** function isn't available on website. Download the Exe file instead)
 
 Website: https://halo333x.github.io/EnviroVoice/
 
-# Tutorial on Youtube
+#  Installation Guide
 
-Video: https://youtu.be/Go5l8UCOCKg
+Guide: https://youtu.be/Go5l8UCOCKg
