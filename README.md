@@ -3,6 +3,10 @@ A voice chat for Minecraft Bedrock that has voice filters depending on the envir
 
 <img src="img/title-dark.png">
 
+# Add-on
+
+Download: https://github.com/Halo333X/EnviroVoice/releases/tag/envirovoice-addon
+
 # Server for Render.com
 
 Server: https://github.com/Halo333X/EnviroVoice-Server
