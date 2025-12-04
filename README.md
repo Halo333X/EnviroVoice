@@ -11,7 +11,7 @@ Apk: https://github.com/Halo333X/EnviroVoice/releases
 
 Exe: 
 
-# Website for Desktop Users / Windows (Only if you don't want to use the *Push To Talk* function)
+# Website for Desktop Users / Windows (*Push To Talk* function not available on website. Download the Exe file instead)
 
 Website: https://halo333x.github.io/EnviroVoice/
 
