@@ -1,4 +1,4 @@
-# EnviroVoice
+# EnviroVoice V.2
 A voice chat for Minecraft Bedrock that has voice filters depending on the environment
 
 <img src="img/title-dark.png">
