@@ -7,10 +7,14 @@ A voice chat for Minecraft Bedrock that has voice filters depending on the envir
 
 Apk: https://github.com/Halo333X/EnviroVoice/releases
 
-# Website for Desktop Users / Windows
+# EXE for Windows
+
+Exe: 
+
+# Website for Desktop Users / Windows (Only if you don't want to use the *Push To Talk* function)
 
 Website: https://halo333x.github.io/EnviroVoice/
 
 # Tutorial on Youtube
 
-Video: https://youtube.com
+Video: https://youtu.be/Go5l8UCOCKg
