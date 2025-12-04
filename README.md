@@ -1,13 +1,13 @@
+# EnviroVoice
+A voice chat for Minecraft Bedrock that has voice filters depending on the environment
+
+<img src="img/title-dark.png">
+
 # Server for Render.com
 
 Server: https://github.com/Halo333X/EnviroVoice-Server
 
 Render: https://render.com/
-
-# EnviroVoice
-A voice chat for Minecraft Bedrock that has voice filters depending on the environment
-
-<img src="img/title-dark.png">
 
 # APK for Android
 
